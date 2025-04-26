@@ -1,5 +1,5 @@
 import { ApiListResponse, Api } from '../components/base/api';
-import { IOrderLot, IOrderResult, IProductItem } from '../types';
+import { IOrder, IOrderResult, IProductItem } from '../types';
 
 interface IApiProductItem {
 	id: string;
@@ -18,7 +18,7 @@ interface IApiOrderSuccessResponse {
 export interface IApiModel {
 	cdnUrl: string;
 	fetchProductCards(): Promise<IProductItem[]>;
-	submitOrder(order: IOrderLot): Promise<IOrderResult>;
+	submitOrder(order: IOrder): Promise<IOrderResult>;
 }
 
 export class ApiModel extends Api implements IApiModel {
@@ -46,14 +46,33 @@ export class ApiModel extends Api implements IApiModel {
 		);
 	}
 
-	submitOrder(order: IOrderLot): Promise<IOrderResult> {
+	submitOrder(order: IOrder): Promise<IOrderResult> {
 		let apiPaymentMethod = '';
 		if (order.paymentMethod === 'card') {
 			apiPaymentMethod = 'online';
 		} else if (order.paymentMethod === 'cash') {
 			apiPaymentMethod = 'cash';
 		} else {
-			return Promise.reject(new Error('Не указан способ оплаты'));
+			if (!order.paymentMethod) {
+				return Promise.reject(new Error('Не указан способ оплаты для API'));
+			}
+			console.error(
+				'Invalid payment method provided to API:',
+				order.paymentMethod
+			);
+			return Promise.reject(new Error('Некорректный способ оплаты для API'));
+		}
+
+		if (
+			!order.contactEmail ||
+			!order.contactPhone ||
+			!order.deliveryAddress ||
+			order.totalAmount === undefined ||
+			order.totalAmount === null
+		) {
+			return Promise.reject(
+				new Error('Неполные данные заказа для отправки в API')
+			);
 		}
 
 		const orderDataForApi = {
@@ -64,6 +83,10 @@ export class ApiModel extends Api implements IApiModel {
 			total: order.totalAmount,
 			items: order.productIds,
 		};
+
+		if (isNaN(orderDataForApi.total)) {
+			return Promise.reject(new Error('Некорректная общая сумма заказа'));
+		}
 
 		return this.post('/order', orderDataForApi).then(
 			(response: IApiOrderSuccessResponse) => ({

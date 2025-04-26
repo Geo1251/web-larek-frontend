@@ -16,20 +16,11 @@ export interface IOrderForm {
 	deliveryAddress?: string;
 	contactPhone?: string;
 	contactEmail?: string;
-	totalAmount?: string | number;
 }
 
 export interface IOrder extends IOrderForm {
 	productIds: string[];
-}
-
-export interface IOrderLot {
-	paymentMethod: string;
-	contactEmail: string;
-	contactPhone: string;
-	deliveryAddress: string;
 	totalAmount: number;
-	productIds: string[];
 }
 
 export interface IOrderResult {

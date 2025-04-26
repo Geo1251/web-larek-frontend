@@ -1,5 +1,5 @@
 import { IEvents } from '../components/base/events';
-import { FormValidationErrors, IOrderLot } from '../types';
+import { FormValidationErrors, IOrder } from '../types';
 
 export interface IFormModel {
 	paymentMethod: string;
@@ -13,7 +13,7 @@ export interface IFormModel {
 	validateAddress(): boolean;
 	updateContactInfo(field: string, value: string): void;
 	validateContactInfo(): boolean;
-	generateOrder(): IOrderLot;
+	generateOrder(): IOrder;
 	getValidationErrors(): FormValidationErrors;
 	clearErrors(): void;
 }
@@ -104,7 +104,7 @@ export class FormModel implements IFormModel {
 		return Object.keys(errors).length === 0;
 	}
 
-	generateOrder(): IOrderLot {
+	generateOrder(): IOrder {
 		return {
 			paymentMethod: this.paymentMethod,
 			contactEmail: this.contactEmail,
