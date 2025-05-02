@@ -1,18 +1,19 @@
 import { IEvents } from '../components/base/events';
+import { ensureElement } from '../utils/utils';
 
 export interface IContactForm {
-	contactFormElement: HTMLFormElement;
-	inputFields: HTMLInputElement[];
-	submitButton: HTMLButtonElement;
-	errorContainer: HTMLElement;
 	render(): HTMLElement;
+	set isValid(value: boolean);
+	displayErrors(errors: string[]): void;
+	email: string;
+	phone: string;
 }
 
 export class ContactForm implements IContactForm {
-	contactFormElement: HTMLFormElement;
-	inputFields: HTMLInputElement[];
-	submitButton: HTMLButtonElement;
-	errorContainer: HTMLElement;
+	protected contactFormElement: HTMLFormElement;
+	protected inputFields: HTMLInputElement[];
+	protected submitButton: HTMLButtonElement;
+	protected errorContainer: HTMLElement;
 
 	constructor(template: HTMLTemplateElement, private eventBus: IEvents) {
 		this.contactFormElement = template.content
@@ -21,24 +22,20 @@ export class ContactForm implements IContactForm {
 		this.inputFields = Array.from(
 			this.contactFormElement.querySelectorAll('.form__input')
 		);
-		this.submitButton = this.contactFormElement.querySelector('.button');
-		this.errorContainer =
-			this.contactFormElement.querySelector('.form__errors');
-
-		if (!this.submitButton)
-			console.error(
-				"Submit button '.button' not found in ContactForm template!"
-			);
-		if (!this.errorContainer)
-			console.error(
-				"Error container '.form__errors' not found in ContactForm template!"
-			);
+		this.submitButton = ensureElement<HTMLButtonElement>(
+			'.button',
+			this.contactFormElement
+		);
+		this.errorContainer = ensureElement<HTMLElement>(
+			'.form__errors',
+			this.contactFormElement
+		);
 
 		this.inputFields.forEach((input) => {
 			input.addEventListener('input', (event) => {
 				const target = event.target as HTMLInputElement;
-				if (target.name === 'email' || target.name === 'phone') {
-					const fieldName = target.name;
+				const fieldName = target.name as 'email' | 'phone';
+				if (fieldName === 'email' || fieldName === 'phone') {
 					const fieldValue = target.value;
 					this.eventBus.emit('contactForm:inputChange', {
 						fieldName,
@@ -55,16 +52,29 @@ export class ContactForm implements IContactForm {
 	}
 
 	set isValid(value: boolean) {
-		if (this.submitButton) {
-			this.submitButton.disabled = !value;
-		}
+		this.submitButton.disabled = !value;
+	}
+
+	get email(): string {
+		return (
+			this.inputFields.find((input) => input.name === 'email')?.value || ''
+		);
+	}
+
+	get phone(): string {
+		return (
+			this.inputFields.find((input) => input.name === 'phone')?.value || ''
+		);
+	}
+
+	displayErrors(errors: string[]): void {
+		this.errorContainer.textContent = errors.join('; ');
 	}
 
 	render(): HTMLElement {
 		this.isValid = false;
-		if (this.errorContainer) {
-			this.errorContainer.textContent = '';
-		}
+		this.displayErrors([]);
+		this.contactFormElement.reset();
 		return this.contactFormElement;
 	}
 }

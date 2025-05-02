@@ -1,19 +1,20 @@
 import { IEvents } from '../components/base/events';
+import { ensureElement } from '../utils/utils';
 
-export interface IOrderForm {
-	orderFormElement: HTMLFormElement;
-	paymentButtons: HTMLButtonElement[];
-	selectedPaymentMethod: string;
-	errorContainer: HTMLElement;
+export interface IOrderFormView {
 	render(): HTMLElement;
+	set isValid(value: boolean);
+	set selectedPaymentMethod(paymentMethod: string | null);
+	displayErrors(errors: string[]): void;
+	address: string;
 }
 
-export class OrderForm implements IOrderForm {
-	orderFormElement: HTMLFormElement;
-	paymentButtons: HTMLButtonElement[];
-	submitButton: HTMLButtonElement;
-	errorContainer: HTMLElement;
-	protected _selectedPaymentMethod: string;
+export class OrderForm implements IOrderFormView {
+	protected orderFormElement: HTMLFormElement;
+	protected paymentButtons: HTMLButtonElement[];
+	protected submitButton: HTMLButtonElement;
+	protected errorContainer: HTMLElement;
+	protected addressInput: HTMLInputElement;
 
 	constructor(template: HTMLTemplateElement, protected eventBus: IEvents) {
 		this.orderFormElement = template.content
@@ -22,21 +23,24 @@ export class OrderForm implements IOrderForm {
 		this.paymentButtons = Array.from(
 			this.orderFormElement.querySelectorAll('.button_alt')
 		);
-		this.submitButton = this.orderFormElement.querySelector('.order__button');
-		this.errorContainer = this.orderFormElement.querySelector('.form__errors');
-
-		if (!this.submitButton)
-			console.error(
-				"Submit button '.order__button' not found in OrderForm template!"
-			);
-		if (!this.errorContainer)
-			console.error(
-				"Error container '.form__errors' not found in OrderForm template!"
-			);
+		this.submitButton = ensureElement<HTMLButtonElement>(
+			'.order__button',
+			this.orderFormElement
+		);
+		this.errorContainer = ensureElement<HTMLElement>(
+			'.form__errors',
+			this.orderFormElement
+		);
+		this.addressInput = ensureElement<HTMLInputElement>(
+			'input[name="address"]',
+			this.orderFormElement
+		);
 
 		this.paymentButtons.forEach((button) => {
 			button.addEventListener('click', () => {
-				eventBus.emit('order:paymentMethodSelected', button);
+				eventBus.emit('order:paymentMethodSelected', {
+					paymentMethod: button.name,
+				});
 			});
 		});
 
@@ -55,8 +59,7 @@ export class OrderForm implements IOrderForm {
 		});
 	}
 
-	set selectedPaymentMethod(paymentMethod: string) {
-		this._selectedPaymentMethod = paymentMethod;
+	set selectedPaymentMethod(paymentMethod: string | null) {
 		this.paymentButtons.forEach((button) => {
 			button.classList.toggle(
 				'button_alt-active',
@@ -65,22 +68,23 @@ export class OrderForm implements IOrderForm {
 		});
 	}
 
-	get selectedPaymentMethod(): string {
-		return this._selectedPaymentMethod;
+	get address(): string {
+		return this.addressInput.value;
 	}
 
 	set isValid(value: boolean) {
-		if (this.submitButton) {
-			this.submitButton.disabled = !value;
-		}
+		this.submitButton.disabled = !value;
+	}
+
+	displayErrors(errors: string[]): void {
+		this.errorContainer.textContent = errors.join('; ');
 	}
 
 	render(): HTMLElement {
 		this.isValid = false;
-		if (this.errorContainer) {
-			this.errorContainer.textContent = '';
-		}
-		this.selectedPaymentMethod = '';
+		this.displayErrors([]);
+		this.selectedPaymentMethod = null;
+		this.orderFormElement.reset();
 		return this.orderFormElement;
 	}
 }

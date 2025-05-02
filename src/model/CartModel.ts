@@ -1,4 +1,5 @@
 import { IProductItem } from '../types';
+import { IEvents } from '../components/base/events';
 
 export interface ICartModel {
 	getProducts(): IProductItem[];
@@ -12,7 +13,7 @@ export interface ICartModel {
 export class CartModel implements ICartModel {
 	private products: IProductItem[];
 
-	constructor() {
+	constructor(protected eventBus: IEvents) {
 		this.products = [];
 	}
 
@@ -32,14 +33,22 @@ export class CartModel implements ICartModel {
 	}
 
 	addProduct(product: IProductItem): void {
-		this.products.push(product);
+		if (!this.products.some((p) => p.id === product.id)) {
+			this.products.push(product);
+			this.eventBus.emit('cart:changed');
+		}
 	}
 
 	removeProduct(product: IProductItem): void {
-		this.products = this.products.filter((p) => p !== product);
+		const initialLength = this.products.length;
+		this.products = this.products.filter((p) => p.id !== product.id);
+		if (this.products.length < initialLength) {
+			this.eventBus.emit('cart:changed');
+		}
 	}
 
 	clearCart(): void {
 		this.products = [];
+		this.eventBus.emit('cart:changed');
 	}
 }

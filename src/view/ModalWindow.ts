@@ -1,28 +1,44 @@
 import { IEvents } from '../components/base/events';
+import { ensureElement } from '../utils/utils';
 
 export interface IModalWindow {
+	content: HTMLElement | null;
 	open(): void;
 	close(): void;
 	render(): HTMLElement;
 }
 
 export class ModalWindow implements IModalWindow {
-	private modalElement: HTMLElement;
-	private closeButton: HTMLButtonElement;
-	private modalContent: HTMLElement;
-	private pageWrapper: HTMLElement;
+	protected modalElement: HTMLElement;
+	protected closeButton: HTMLButtonElement;
+	protected modalContent: HTMLElement;
 
 	constructor(modalElement: HTMLElement, private eventBus: IEvents) {
 		this.modalElement = modalElement;
-		this.closeButton = modalElement.querySelector('.modal__close');
-		this.modalContent = modalElement.querySelector('.modal__content');
-		this.pageWrapper = document.querySelector('.page__wrapper');
+		this.closeButton = ensureElement<HTMLButtonElement>(
+			'.modal__close',
+			this.modalElement
+		);
+		this.modalContent = ensureElement<HTMLElement>(
+			'.modal__content',
+			this.modalElement
+		);
 
 		this.closeButton.addEventListener('click', this.close.bind(this));
-		this.modalElement.addEventListener('click', this.close.bind(this));
-		this.modalElement
-			.querySelector('.modal__container')
-			.addEventListener('click', (event) => event.stopPropagation());
+		this.modalElement.addEventListener(
+			'click',
+			this.handleOverlayClick.bind(this)
+		);
+		ensureElement<HTMLElement>(
+			'.modal__container',
+			this.modalElement
+		).addEventListener('click', (event) => event.stopPropagation());
+	}
+
+	protected handleOverlayClick(event: MouseEvent) {
+		if (event.target === this.modalElement) {
+			this.close();
+		}
 	}
 
 	set content(value: HTMLElement | null) {
@@ -31,6 +47,10 @@ export class ModalWindow implements IModalWindow {
 		} else {
 			this.modalContent.innerHTML = '';
 		}
+	}
+
+	get content(): HTMLElement | null {
+		return this.modalContent.firstElementChild as HTMLElement | null;
 	}
 
 	open(): void {
@@ -44,16 +64,7 @@ export class ModalWindow implements IModalWindow {
 		this.eventBus.emit('modal:close');
 	}
 
-	set locked(value: boolean) {
-		if (value) {
-			this.pageWrapper.classList.add('page__wrapper_locked');
-		} else {
-			this.pageWrapper.classList.remove('page__wrapper_locked');
-		}
-	}
-
 	render(): HTMLElement {
-		this.open();
 		return this.modalElement;
 	}
 }

@@ -1,55 +1,47 @@
-import { createElement } from '../utils/utils';
+import { createElement, ensureElement } from '../utils/utils';
 import { IEvents } from '../components/base/events';
 
 export interface IShoppingCart {
-	cartContainer: HTMLElement;
-	cartTitle: HTMLElement;
-	cartItemsList: HTMLElement;
-	checkoutButton: HTMLButtonElement;
-	totalPriceElement: HTMLElement;
-	headerCartButton: HTMLButtonElement;
-	headerCartCounter: HTMLElement;
-	updateCartCounter(value: number): void;
+	set items(items: HTMLElement[]);
 	updateTotalPrice(total: number): void;
+	set checkoutDisabled(isDisabled: boolean);
 	render(): HTMLElement;
 }
 
 export class ShoppingCart implements IShoppingCart {
-	cartContainer: HTMLElement;
-	cartTitle: HTMLElement;
-	cartItemsList: HTMLElement;
-	checkoutButton: HTMLButtonElement;
-	totalPriceElement: HTMLElement;
-	headerCartButton: HTMLButtonElement;
-	headerCartCounter: HTMLElement;
+	protected cartContainer: HTMLElement;
+	protected cartItemsList: HTMLElement;
+	protected checkoutButton: HTMLButtonElement;
+	protected totalPriceElement: HTMLElement;
 
 	constructor(template: HTMLTemplateElement, protected eventBus: IEvents) {
 		this.cartContainer = template.content
 			.querySelector('.basket')
 			.cloneNode(true) as HTMLElement;
-		this.cartTitle = this.cartContainer.querySelector('.modal__title');
-		this.cartItemsList = this.cartContainer.querySelector('.basket__list');
-		this.checkoutButton = this.cartContainer.querySelector('.basket__button');
-		this.totalPriceElement = this.cartContainer.querySelector('.basket__price');
-		this.headerCartButton = document.querySelector('.header__basket');
-		this.headerCartCounter = document.querySelector('.header__basket-counter');
+		this.cartItemsList = ensureElement<HTMLElement>(
+			'.basket__list',
+			this.cartContainer
+		);
+		this.checkoutButton = ensureElement<HTMLButtonElement>(
+			'.basket__button',
+			this.cartContainer
+		);
+		this.totalPriceElement = ensureElement<HTMLElement>(
+			'.basket__price',
+			this.cartContainer
+		);
 
 		this.checkoutButton.addEventListener('click', () => {
 			this.eventBus.emit('order:open');
 		});
-		this.headerCartButton.addEventListener('click', () => {
-			this.eventBus.emit('cart:open');
-		});
-
-		this.cartItems = [];
 	}
 
-	set cartItems(items: HTMLElement[]) {
+	set items(items: HTMLElement[]) {
 		if (items.length) {
 			this.cartItemsList.replaceChildren(...items);
-			this.checkoutButton.removeAttribute('disabled');
+			this.checkoutDisabled = false;
 		} else {
-			this.checkoutButton.setAttribute('disabled', 'disabled');
+			this.checkoutDisabled = true;
 			this.cartItemsList.replaceChildren(
 				createElement<HTMLParagraphElement>('p', {
 					textContent: 'Ваша корзина пуста',
@@ -58,16 +50,17 @@ export class ShoppingCart implements IShoppingCart {
 		}
 	}
 
-	updateCartCounter(value: number) {
-		this.headerCartCounter.textContent = String(value);
+	set checkoutDisabled(isDisabled: boolean) {
+		if (this.checkoutButton) {
+			this.checkoutButton.disabled = isDisabled;
+		}
 	}
 
 	updateTotalPrice(total: number) {
 		this.totalPriceElement.textContent = `${total} синапсов`;
 	}
 
-	render() {
-		this.cartTitle.textContent = 'Корзина покупок';
+	render(): HTMLElement {
 		return this.cartContainer;
 	}
 }

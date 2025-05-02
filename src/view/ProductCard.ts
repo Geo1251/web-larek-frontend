@@ -1,8 +1,10 @@
 import { IActions, IProductItem } from '../types';
 import { IEvents } from '../components/base/events';
+import { ensureElement } from '../utils/utils';
 
 export interface IProductCard {
 	render(data: IProductItem): HTMLElement;
+	id: string;
 }
 
 export class ProductCard implements IProductCard {
@@ -11,6 +13,10 @@ export class ProductCard implements IProductCard {
 	protected titleElement: HTMLElement;
 	protected imageElement: HTMLImageElement;
 	protected priceElement: HTMLElement;
+	protected descriptionElement?: HTMLElement;
+
+	readonly id: string;
+
 	protected categoryStyles: Record<string, string> = {
 		дополнительное: 'additional',
 		'софт-скил': 'soft',
@@ -18,6 +24,8 @@ export class ProductCard implements IProductCard {
 		'хард-скил': 'hard',
 		другое: 'other',
 	};
+	protected baseCategoryClass = 'card__category';
+	protected currentCategoryModifier: string | null = null;
 
 	constructor(
 		template: HTMLTemplateElement,
@@ -27,17 +35,35 @@ export class ProductCard implements IProductCard {
 		this.cardElement = template.content
 			.querySelector('.card')
 			.cloneNode(true) as HTMLElement;
-		this.categoryElement = this.cardElement.querySelector('.card__category');
-		this.titleElement = this.cardElement.querySelector('.card__title');
-		this.imageElement = this.cardElement.querySelector('.card__image');
-		this.priceElement = this.cardElement.querySelector('.card__price');
+		this.categoryElement = ensureElement<HTMLElement>(
+			'.card__category',
+			this.cardElement
+		);
+		this.titleElement = ensureElement<HTMLElement>(
+			'.card__title',
+			this.cardElement
+		);
+		this.imageElement = ensureElement<HTMLImageElement>(
+			'.card__image',
+			this.cardElement
+		);
+		this.priceElement = ensureElement<HTMLElement>(
+			'.card__price',
+			this.cardElement
+		);
+		this.descriptionElement =
+			this.cardElement.querySelector('.card__text') ?? undefined;
+		this.id = '';
 
 		if (actions?.handleClick) {
 			this.cardElement.addEventListener('click', actions.handleClick);
 		}
 	}
 
-	protected updateTextContent(element: HTMLElement, value: unknown): void {
+	protected updateTextContent(
+		element: HTMLElement | undefined,
+		value: unknown
+	): void {
 		if (element) {
 			element.textContent = String(value);
 		}
@@ -45,7 +71,22 @@ export class ProductCard implements IProductCard {
 
 	protected setCategory(value: string): void {
 		this.updateTextContent(this.categoryElement, value);
-		this.categoryElement.className = `card__category card__category_${this.categoryStyles[value]}`;
+		const newModifier = this.categoryStyles[value];
+
+		if (this.currentCategoryModifier) {
+			this.categoryElement.classList.remove(
+				`${this.baseCategoryClass}_${this.currentCategoryModifier}`
+			);
+		}
+
+		if (newModifier) {
+			this.categoryElement.classList.add(
+				`${this.baseCategoryClass}_${newModifier}`
+			);
+			this.currentCategoryModifier = newModifier;
+		} else {
+			this.currentCategoryModifier = null;
+		}
 	}
 
 	protected formatPrice(value: number | null): string {
@@ -53,11 +94,17 @@ export class ProductCard implements IProductCard {
 	}
 
 	render(data: IProductItem): HTMLElement {
+		(this as { id: string }).id = data.id;
+		this.cardElement.dataset.id = data.id;
+
 		this.setCategory(data.category);
 		this.updateTextContent(this.titleElement, data.title);
 		this.imageElement.src = data.image;
 		this.imageElement.alt = data.title;
-		this.priceElement.textContent = this.formatPrice(data.price);
+		this.updateTextContent(this.priceElement, this.formatPrice(data.price));
+		if (this.descriptionElement) {
+			this.updateTextContent(this.descriptionElement, data.description);
+		}
 		return this.cardElement;
 	}
 }

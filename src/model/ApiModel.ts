@@ -47,46 +47,14 @@ export class ApiModel extends Api implements IApiModel {
 	}
 
 	submitOrder(order: IOrder): Promise<IOrderResult> {
-		let apiPaymentMethod = '';
-		if (order.paymentMethod === 'card') {
-			apiPaymentMethod = 'online';
-		} else if (order.paymentMethod === 'cash') {
-			apiPaymentMethod = 'cash';
-		} else {
-			if (!order.paymentMethod) {
-				return Promise.reject(new Error('Не указан способ оплаты для API'));
-			}
-			console.error(
-				'Invalid payment method provided to API:',
-				order.paymentMethod
-			);
-			return Promise.reject(new Error('Некорректный способ оплаты для API'));
-		}
-
-		if (
-			!order.contactEmail ||
-			!order.contactPhone ||
-			!order.deliveryAddress ||
-			order.totalAmount === undefined ||
-			order.totalAmount === null
-		) {
-			return Promise.reject(
-				new Error('Неполные данные заказа для отправки в API')
-			);
-		}
-
 		const orderDataForApi = {
-			payment: apiPaymentMethod,
+			payment: order.paymentMethod,
 			email: order.contactEmail,
 			phone: order.contactPhone,
 			address: order.deliveryAddress,
 			total: order.totalAmount,
 			items: order.productIds,
 		};
-
-		if (isNaN(orderDataForApi.total)) {
-			return Promise.reject(new Error('Некорректная общая сумма заказа'));
-		}
 
 		return this.post('/order', orderDataForApi).then(
 			(response: IApiOrderSuccessResponse) => ({

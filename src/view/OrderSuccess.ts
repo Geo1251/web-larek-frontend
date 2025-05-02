@@ -1,26 +1,27 @@
 import { IEvents } from '../components/base/events';
+import { ensureElement } from '../utils/utils';
 
 export interface IOrderSuccess {
-	successElement: HTMLElement;
-	descriptionElement: HTMLElement;
-	closeButton: HTMLButtonElement;
 	render(totalAmount: number): HTMLElement;
+	set total(total: number);
 }
 
 export class OrderSuccess implements IOrderSuccess {
-	successElement: HTMLElement;
-	descriptionElement: HTMLElement;
-	closeButton: HTMLButtonElement;
+	protected successElement: HTMLElement;
+	protected descriptionElement: HTMLElement;
+	protected closeButton: HTMLButtonElement;
 
 	constructor(template: HTMLTemplateElement, private eventBus: IEvents) {
 		this.successElement = template.content
 			.querySelector('.order-success')
 			.cloneNode(true) as HTMLElement;
-		this.descriptionElement = this.successElement.querySelector(
-			'.order-success__description'
+		this.descriptionElement = ensureElement<HTMLElement>(
+			'.order-success__description',
+			this.successElement
 		);
-		this.closeButton = this.successElement.querySelector(
-			'.order-success__close'
+		this.closeButton = ensureElement<HTMLButtonElement>(
+			'.order-success__close',
+			this.successElement
 		);
 
 		this.closeButton.addEventListener('click', () => {
@@ -28,8 +29,12 @@ export class OrderSuccess implements IOrderSuccess {
 		});
 	}
 
+	set total(total: number) {
+		this.descriptionElement.textContent = `Списано ${total} синапсов`;
+	}
+
 	render(totalAmount: number): HTMLElement {
-		this.descriptionElement.textContent = `Списано ${totalAmount} синапсов`;
+		this.total = totalAmount;
 		return this.successElement;
 	}
 }
