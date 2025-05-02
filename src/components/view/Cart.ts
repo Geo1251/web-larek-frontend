@@ -1,5 +1,5 @@
-import { createElement, ensureElement } from '../utils/utils';
-import { IEvents } from '../components/base/events';
+import { createElement, ensureElement } from '../../utils/utils';
+import { IEvents } from '../base/events';
 
 export interface IShoppingCart {
 	set items(items: HTMLElement[]);

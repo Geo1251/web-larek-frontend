@@ -1,6 +1,6 @@
-import { IActions, IProductItem } from '../types';
-import { IEvents } from '../components/base/events';
-import { ensureElement } from '../utils/utils';
+import { IActions, IProductItem } from '../../types';
+import { IEvents } from '../base/events';
+import { ensureElement } from '../../utils/utils';
 
 export interface ICartItem {
 	render(data: IProductItem, index: number): HTMLElement;

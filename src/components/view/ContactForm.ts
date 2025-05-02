@@ -1,5 +1,5 @@
-import { IEvents } from '../components/base/events';
-import { ensureElement } from '../utils/utils';
+import { IEvents } from '../base/events';
+import { ensureElement } from '../../utils/utils';
 
 export interface IContactForm {
 	render(): HTMLElement;

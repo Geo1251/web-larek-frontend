@@ -1,7 +1,7 @@
 import { ProductCard, IProductCard } from './ProductCard';
-import { IActions, IProductItem } from '../types';
-import { IEvents } from '../components/base/events';
-import { ensureElement } from '../utils/utils';
+import { IActions, IProductItem } from '../../types';
+import { IEvents } from '../base/events';
+import { ensureElement } from '../../utils/utils';
 
 export interface IProductPreview extends IProductCard {
 	set buttonText(text: string);

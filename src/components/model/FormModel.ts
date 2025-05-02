@@ -1,5 +1,5 @@
-import { IEvents } from '../components/base/events';
-import { FormValidationErrors, IOrder } from '../types';
+import { IEvents } from '../base/events';
+import { FormValidationErrors, IOrder } from '../../types';
 
 export interface IFormModel {
 	paymentMethod: string;

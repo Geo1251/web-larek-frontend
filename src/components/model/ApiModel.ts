@@ -1,5 +1,5 @@
-import { ApiListResponse, Api } from '../components/base/api';
-import { IOrder, IOrderResult, IProductItem } from '../types';
+import { ApiListResponse, Api } from '../base/api';
+import { IOrder, IOrderResult, IProductItem } from '../../types';
 
 interface IApiProductItem {
 	id: string;

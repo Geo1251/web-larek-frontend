@@ -1,5 +1,5 @@
-import { IProductItem } from '../types';
-import { IEvents } from '../components/base/events';
+import { IProductItem } from '../../types';
+import { IEvents } from '../base/events';
 
 export interface ICartModel {
 	getProducts(): IProductItem[];

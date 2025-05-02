@@ -2,25 +2,25 @@ import './scss/styles.scss';
 
 import { CDN_URL, API_URL } from './utils/constants';
 import { EventEmitter } from './components/base/events';
-import { ApiModel } from './model/ApiModel';
-import { DataModel } from './model/DataModel';
-import { ProductCard } from './view/ProductCard';
-import { ProductPreview } from './view/ProductPreview';
+import { ApiModel } from './components/model/ApiModel';
+import { DataModel } from './components/model/DataModel';
+import { ProductCard } from './components/view/ProductCard';
+import { ProductPreview } from './components/view/ProductPreview';
 import {
 	IProductItem,
 	FormValidationErrors,
 	IOrderResult,
 	IOrder,
 } from './types';
-import { ModalWindow } from './view/ModalWindow';
+import { ModalWindow } from './components/view/ModalWindow';
 import { ensureElement } from './utils/utils';
-import { CartModel } from './model/CartModel';
-import { ShoppingCart } from './view/Cart';
-import { CartItem } from './view/CartItem';
-import { FormModel } from './model/FormModel';
-import { OrderForm } from './view/OrderForm';
-import { ContactForm } from './view/ContactForm';
-import { OrderSuccess } from './view/OrderSuccess';
+import { CartModel } from './components/model/CartModel';
+import { ShoppingCart } from './components/view/Cart';
+import { CartItem } from './components/view/CartItem';
+import { FormModel } from './components/model/FormModel';
+import { OrderForm } from './components/view/OrderForm';
+import { ContactForm } from './components/view/ContactForm';
+import { OrderSuccess } from './components/view/OrderSuccess';
 
 const pageWrapper = ensureElement<HTMLElement>('.page__wrapper');
 const galleryContainer = ensureElement<HTMLElement>('.gallery');
